@@ -1,10 +1,49 @@
 package com.example.wearablesmartdevice
 import android.annotation.SuppressLint
-import android.bluetooth.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.util.Log
-import kotlinx.coroutines.*
-import java.util.*
+import java.util.UUID
+
+
+enum class ServiceUUID(val uuid: UUID,val value: String){
+    UUID_Service_LED(UUID.fromString("00001000-0000-1000-8000-00805f9b34fb"),"00001000-0000-1000-8000-00805f9b34fb"),
+    UUID_Service_FAN(UUID.fromString("00002000-0000-1000-8000-00805f9b34fb"),"00002000-0000-1000-8000-00805f9b34fb"),
+    UUID_Service_HEATER(UUID.fromString("00003000-0000-1000-8000-00805f9b34fb"),"00003000-0000-1000-8000-00805f9b34fb"),
+    UUID_Service_SYSTEM(UUID.fromString("00004000-0000-1000-8000-00805f9b34fb"),"00004000-0000-1000-8000-00805f9b34fb");
+
+    companion object {
+        fun fromUuid(uuid: UUID): ServiceUUID? = values().firstOrNull { it.uuid == uuid }
+        fun fromString(value: String): ServiceUUID? = values().firstOrNull { it.value.equals(value, ignoreCase = true) }
+    }
+}
+
+enum class CharacteristicUUID(val uuid: UUID, val value: String){
+
+    UUID_CHAR_LED_POWER(UUID.fromString("00001001-0000-1000-8000-00805f9b34fb"),"00001001-0000-1000-8000-00805f9b34fb"),
+    UUID_CHAR_LED_RED(UUID.fromString("00001002-0000-1000-8000-00805f9b34fb"),"00001002-0000-1000-8000-00805f9b34fb"),
+    UUID_CHAR_LED_GREEN(UUID.fromString("00001003-0000-1000-8000-00805f9b34fb"),"00001003-0000-1000-8000-00805f9b34fb"),
+    UUID_CHAR_LED_BLUE(UUID.fromString("00001004-0000-1000-8000-00805f9b34fb"),"00001004-0000-1000-8000-00805f9b34fb"),
+
+    UUID_CHAR_FAN_POWER(UUID.fromString("00002001-0000-1000-8000-00805f9b34fb"),"00002001-0000-1000-8000-00805f9b34fb"),
+    UUID_CHAR_FAN_SPEED(UUID.fromString("00002002-0000-1000-8000-00805f9b34fb"),"00002002-0000-1000-8000-00805f9b34fb"),
+
+    UUID_CHAR_HEATER_POWER(UUID.fromString("00003001-0000-1000-8000-00805f9b34fb"),"00003001-0000-1000-8000-00805f9b34fb"),
+
+    UUID_CHAR_SYSTEM_EMERGENCY(UUID.fromString("00004001-0000-1000-8000-00805f9b34fb"),"00004001-0000-1000-8000-00805f9b34fb"),
+    UUID_CHAR_SYSTEM_TEXTIN(UUID.fromString("00004002-0000-1000-8000-00805f9b34fb"),"00004002-0000-1000-8000-00805f9b34fb");
+
+    companion object {
+        fun fromUuid(uuid: UUID): CharacteristicUUID? = values().firstOrNull { it.uuid == uuid }
+        fun fromString(value: String): CharacteristicUUID? = values().firstOrNull { it.value.equals(value, ignoreCase = true) }
+    }
+
+}
 
 class BLEManager(private val context: Context) {
 
@@ -14,12 +53,6 @@ class BLEManager(private val context: Context) {
 
     companion object {
         private const val TAG = "BLEManager"
-
-        // 根据您的ESP32代码定义UUID
-        private val SERVICE_LED_UUID = UUID.fromString("00001000-0000-1000-8000-00805f9b34fb")
-        private val CHAR_LED_POWER_UUID = UUID.fromString("00001001-0000-1000-8000-00805f9b34fb")
-        private val CHAR_TEXT_INPUT_UUID = UUID.fromString("00004002-0000-1000-8000-00805f9b34fb")
-        private val UUID_SERVICE_SYSTEM = UUID.fromString("00004000-0000-1000-8000-00805f9b34fb")
     }
 
     interface BLECallback {
@@ -126,13 +159,13 @@ class BLEManager(private val context: Context) {
         }
 
         try {
-            val service = bluetoothGatt?.getService(UUID_SERVICE_SYSTEM)
+            val service = bluetoothGatt?.getService(ServiceUUID.UUID_Service_LED.uuid)
             if (service == null) {
                 callback.onDataSent(false, "未找到LED服务")
                 return
             }
 
-            val characteristic = service.getCharacteristic(CHAR_TEXT_INPUT_UUID)
+            val characteristic = service.getCharacteristic(CharacteristicUUID.UUID_CHAR_SYSTEM_TEXTIN.uuid)
             if (characteristic == null) {
                 // 打印所有可用的特征，帮助调试
                 val allCharacteristics = service.characteristics
@@ -140,7 +173,7 @@ class BLEManager(private val context: Context) {
                 allCharacteristics.forEach { char ->
                     Log.e(TAG, "特征UUID: ${char.uuid}, 属性: ${char.properties}")
                 }
-                callback.onDataSent(false, "未找到文本输入特征 (UUID: $CHAR_TEXT_INPUT_UUID)")
+                callback.onDataSent(false, "未找到文本输入特征 (UUID: $CharacteristicUUID.UUID_CHAR_SYSTEM_TEXTIN.uuid)")
                 return
             }
 
