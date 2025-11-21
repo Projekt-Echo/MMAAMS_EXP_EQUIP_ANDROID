@@ -12,17 +12,10 @@ Prerequisites
 Android device (API 21+, Android 5.0+)
 ESP32 microcontroller with BLE service enabled
 ESP32 BLE service/characteristic UUIDs (configure in app code)
-Usage
 Power on ESP32 and enable its BLE service
 Grant Bluetooth/BLE permissions to the app
 Scan for devices, select your ESP32 from the list
 Send control commands or view received data in real-time
-Setup
-Clone this repo: git clone https://github.com/your-username/BLE-ESP32-Controller.git
-Open in Android Studio (Chipmunk+/compatible version)
-Replace BLE_SERVICE_UUID and BLE_CHARACTERISTIC_UUID in code with your ESP32's UUIDs
-Build & run on your Android device
-Tech Stack
 Language: Kotlin
 Framework: Android SDK
 Protocol: BLE (Bluetooth Low Energy)
